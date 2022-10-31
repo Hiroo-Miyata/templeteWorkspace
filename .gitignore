@@ -1,8 +1,13 @@
-/data
+/data/raw/*
 !/data/raw/README.md
+/data/synchronized/*
 !/data/synchronized/README.md
+/data/preprocessed/*
 !/data/preprocessed/README.md
+!/data/preprocessed/emgConfirmPlot/
+/data/preprocessed/emgConfirmPlot/*
 !/data/preprocessed/emgConfirmPlot/README.md
+/data/processed/*
 !/data/processed/README.md
 
 /src/*.asv

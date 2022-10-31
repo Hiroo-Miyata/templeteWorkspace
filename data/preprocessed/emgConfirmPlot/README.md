@@ -1,0 +1,1 @@
+# this directory stores EMG preprocessing process 
