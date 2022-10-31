@@ -1,0 +1,12 @@
+/data/
+!/data/raw/README.md
+!/data/synchronized/README.md
+!/data/preprocessed/README.md
+!/data/preprocessed/emgConfirmPlot/README.md
+!/data/processed/README.md
+
+/src/*.asv
+/src/utils/preprocessing/*.asv
+/src/utils/synchronizing/*.asv
+
+.DS_Store
