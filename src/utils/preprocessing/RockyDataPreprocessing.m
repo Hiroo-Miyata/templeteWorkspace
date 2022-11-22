@@ -70,8 +70,11 @@ disp('Saved neural data')
 
 %% Preprocess EMG and ECG data
 % TO-DO: put in EMG processing here
-% save([outputFolder saveFilenameBase 'EMG_' procTimeString],'EMGData')
-% save([outputFolder saveFilenameBase 'ECG_' procTimeString],'ECGData')
+outputFormat = ["jpg", "svg", "fig"]; %"jpg", "svg", "fig"
+plotoutputFolder = [outputFolder 'emgConfirmPlot/'];
+[EMGData, EMGMetrics, ECGData] = emgPreprocess(trialData, analogData, outputFormat, plotoutputFolder);
+save([outputFolder saveFilenameBase 'EMG_' procTimeString], 'EMGData', 'EMGMetrics')
+save([outputFolder saveFilenameBase 'ECG_' procTimeString], 'ECGData')
 
 %% Preprocess eye data
 % TO-DO: put in Eye data processing here

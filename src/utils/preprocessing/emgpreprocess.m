@@ -1,3 +1,4 @@
+function [EMGData, EMGMetrics, ECGData] = emgPreprocess(trialData, analogData, outputFormat, plotoutputFolder)
 % This function preprocesses the EMG data, including filtering,
 % rectification, and downsampling. Then, we get the segment applied to each
 % trial in trialData and store it accordingly.
@@ -18,11 +19,10 @@
 % kinematics
 %
 % Outputs:
-% - trialDataEMG: same as input, but now has 2 more fields:
-%   - EMGData: structure with 2 fields:
-%       - EMG: [ntime x nmuscles] matrix with EMG values
-%       - muscleNames: [nmuscles x 1] cell array with the corresponding 
-%       muscle names for each
+% - EMGdata: same as input, but now has 3 more fields:
+%   - EMG: [ntime x nmuscles] matrix with EMG values
+%   - muscleNames: [nmuscles x 1] cell array with the corresponding 
+%     muscle names for each
 %   - goodEMGData: [nmuscles x 1] boolean array indicating if the trial's 
 %   data for each muscle is good/does not have artifacts or issues
 % - EMGMetrics: a structure indicating signal quality for each muscle
@@ -41,13 +41,11 @@ outputFormat = []; %"jpg", "svg", "fig"
 plotoutputFolder = rootDir + "data/preprocessed/" + date + "/emgConfirmPlot/";
 
 %% Filtering
-file = dir(synchonizedFolder+ "*" +date+ '*.mat');
-alldata = load(file.folder +"/"+ file.name);
-signalData = alldata.analogData;
+signalData = analogData;
 muscleLabel = ["ADel", "LBic", "PDel", "Trap", "Tric"];
 fs = 10000;
 new_fs = 1000;
-zerotime = alldata.analogData.time(1); %second
+zerotime = signalData.time(1); %second
 
 % separate signal by trial
 % Step 1 prepare (downsampled length, 5) double array
@@ -89,22 +87,22 @@ for i=(1:length(muscleLabel))
     end
 end
 trialDataEMGRaw = struct.empty(0);
-
-for t=(1:length(alldata.trialData))
-    trialData = alldata.trialData(t);
-    startTime = ceil((trialData.taskSynchTrialTime-zerotime)*1000);
-    endTime = ceil((trialData.taskSynchTrialTime-zerotime)*1000 + max(trialData.time));
+ECGData = struct.empty(0);
+for t=(1:length(trialData))
+    startTime = ceil((trialData(t).taskSynchTrialTime-zerotime)*1000 + min(trialData(t).time));
+    endTime = ceil((trialData(t).taskSynchTrialTime-zerotime)*1000 + max(trialData(t).time));
     trialDataEMGRaw(t).emg = preprocessedEMGs(startTime:endTime, :);
-    trialDataEMGRaw(t).prop.direction = trialData.directionLabel;
-    trialDataEMGRaw(t).prop.reward = trialData.rewardLabel;
-    trialDataEMGRaw(t).prop.stateTransition = trialData.stateTable;
+    trialDataEMGRaw(t).time = trialData(t).time;
+    trialDataEMGRaw(t).prop.direction = trialData(t).directionLabel;
+    trialDataEMGRaw(t).prop.reward = trialData(t).rewardLabel;
+    trialDataEMGRaw(t).prop.stateTransition = trialData(t).stateTable;
+
+    ECGData(t).signal = denoisedECG(startTime:endTime, :);
 end
 
 %% Normalizing
 emgRest = preprocessedEMGs(1:120*new_fs, :);
-[trialDataEMG, EMGMetrics] = emgNormalization(trialDataEMGRaw, emgRest, muscleLabel);
-
-save(outputFolder + "/singleTrials_emg.mat", 'trialDataEMG', 'EMGMetrics');
+[EMGData, EMGMetrics] = emgNormalization(trialDataEMGRaw, emgRest, muscleLabel);
 
 %% ploting
 dataLength = 0;
@@ -121,7 +119,7 @@ for i=(1:length(trialDataEMGRaw))
     if all(ismember([3 4 5 6], stateTransition(1,:))) == 1
         s = s + 1;
         GoCueTime = stateTransition(2, find(stateTransition(1, :)==4));
-        EMGaroundGoCue = trialDataEMG(i).signal(GoCueTime-200:GoCueTime+600, :); % -200ms ~ +600ms at GoCue
+        EMGaroundGoCue = EMGData(i).signal(GoCueTime-200:GoCueTime+600, :); % -200ms ~ +600ms at GoCue
         Y(s, :) = mean(EMGaroundGoCue, 1);
     end
 end

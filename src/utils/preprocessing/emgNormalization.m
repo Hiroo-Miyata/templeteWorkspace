@@ -31,7 +31,9 @@ for i=(1:length(preprocessedTrialData))
     stateTransition = preprocessedTrialData(i).prop.stateTransition;
     if all(ismember([3 4 5 6], stateTransition(1,:))) == 1
         s = s+1;
+        zeroTime = preprocessedTrialData(i).time(preprocessedTrialData(i).time==0);
         GoCueTime = stateTransition(2, find(stateTransition(1, :)==4));
+        GoCueTime = GoCueTime + zeroTime;
         EMGaroundGoCue = preprocessedTrialData(i).emg(GoCueTime-200:GoCueTime+600, :); % -200ms ~ +600ms at GoCue
         EMG(:,:, s) = EMGaroundGoCue;
         directionArray(s) = preprocessedTrialData(i).prop.direction;
