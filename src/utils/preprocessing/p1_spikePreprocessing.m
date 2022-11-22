@@ -102,17 +102,17 @@ rewardLabels = [trialData.rewardLabel];
 badTrials(outlierTrials) = true;
 disp(['# trials removed: ' num2str(sum(badTrials))])
 disp(['# of Jackpots removed: ' num2str(sum(rewardLabels(badTrials)==4))])
-fullTrialSpikeRateMat(:,badTrials) = zeros(nunits, sum(badTrials));    % remove it from these too
+
+fullTrialSpikeRateMat(:,badTrials) = [];    % remove it from these too
 spikeInfo.badTrials = badTrials;            % removes bad trials...nice and easy.
 
 
 
 %% (2b) Remove outlier and unsorted units
 disp('Removing bad units')
-badTrailRemovedTrialSRM = fullTrialSpikeRateMat(:,~badTrials);
 % First, if they don't spike enough, they're out! They'll probs break
 % the FA model...
-noSpikeUnits = mean(badTrailRemovedTrialSRM,2) < minSpikeRate;
+noSpikeUnits = mean(fullTrialSpikeRateMat,2) < minSpikeRate;
 badUnits(noSpikeUnits) = true;
 
 % This ^ captures units who fire too slowly for the FA model; however,
@@ -120,7 +120,7 @@ badUnits(noSpikeUnits) = true;
 % typically, some ridiculously high FR with virtually 0 variance. We
 % don't want these units in our data! To avoid them, we'll take the
 % stdev of the data; if a unit is < 1 Hz across all trials, remove it.
-lowVarUnits = std(badTrailRemovedTrialSRM,[],2) < minSpikeRate;
+lowVarUnits = std(fullTrialSpikeRateMat,[],2) < minSpikeRate;
 badUnits(lowVarUnits) = true;
 
 % Occasionally a unit will be present / active for like half
@@ -128,9 +128,9 @@ badUnits(lowVarUnits) = true;
 % throw off dimensionality reduction, so let's clean it up. To check
 % this, we'll simply look at the mean of the first vs. last 1/4 of the
 % session's trials.
-quarterOfSession = round(size(badTrailRemovedTrialSRM, 2)/4);
-earlyFR = mean(badTrailRemovedTrialSRM(:,1:quarterOfSession),2);
-lateFR = mean(badTrailRemovedTrialSRM(:,end-quarterOfSession+1:end),2);
+quarterOfSession = round(size(fullTrialSpikeRateMat, 2)/4);
+earlyFR = mean(fullTrialSpikeRateMat(:,1:quarterOfSession),2);
+lateFR = mean(fullTrialSpikeRateMat(:,end-quarterOfSession+1:end),2);
 droppedUnits = (earlyFR-lateFR)./earlyFR > 0.75; % >75% drop in FR
 badUnits(droppedUnits) = true;
 
@@ -143,7 +143,7 @@ badUnits(lateUnits) = true;
 % hold for a while, so we'll look for some sustained ridiculously high
 % activity.
 for i=(1:nunits)
-    smoothedTrialFR(i, :) = conv(badTrailRemovedTrialSRM(i, :),1/50*ones(50,1),'valid'); % running 50 trial window
+    smoothedTrialFR(i, :) = conv(fullTrialSpikeRateMat(i, :),1/50*ones(50,1),'valid'); % running 50 trial window
 end
 artifactHighUnits = any(smoothedTrialFR > 200,2); % if the avg of 50 trials is ever > 200Hz, there's a problem!
 badUnits(artifactHighUnits) = true;
@@ -155,8 +155,10 @@ badUnits(artifactHighUnits) = true;
 %% (3) Remove duplicated "cross-talk" units
 binSize = 10;
 dataForCrosstalk = [];
-for j = 1:min(20,ntrials) % 10 trials should be enough
-    curTrial = neuralData(j).spikeMatrix;
+badTrialRemovedNeuralData = neuralData;
+badTrialRemovedNeuralData(badTrials) = [];
+for j = 1:min(20,length(badTrialRemovedNeuralData)) % 10 trials should be enough
+    curTrial = badTrialRemovedNeuralData(j).spikeMatrix;
     curTrialBinned = [];
     curInd = 1;
     while curInd+binSize <= size(curTrial,1)
@@ -190,7 +192,6 @@ for j = 1:ntrials
     neuralData(j).spikeMatrix(badUnits, :) = [];
 end; clear j;
 spikeInfo.badUnits = badUnits;
-fullTrialSpikeRateMat(badUnits,:) = zeros(sum(badUnits), ntrials);     % remove it from these too
 
 disp('p1_spikePreprocessing complete!')
 end
