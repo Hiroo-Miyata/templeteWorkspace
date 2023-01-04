@@ -1,4 +1,4 @@
-function [neuralData, spikeInfo] = p1_spikePreprocessing(trialData, neuralData,minSpikeRate,corrThresh)
+function [neuralData, spikeInfo] = p1_spikePreprocessing(trialData, neuralData,minSpikeRate,corrThresh, plotoutputFolder)
 % This function is the 1st processing step after spike-sorted data from the
 % Batista lab has been run through initial preprocessing. Here, we do three
 % things:
@@ -47,6 +47,7 @@ for j = 1:ntrials
     end
 end; clear j
 
+firingRateAll = fullTrialSpikeRateMat; % tmp file for plot
     
 %% First, if they don't spike enough, they're out! This probs means the
 % trial is an artifact of some sort
@@ -190,9 +191,10 @@ for j = 1:ntrials
     neuralData(j).channel(badUnits) = [];
     neuralData(j).sort(badUnits) = [];
     neuralData(j).spikeMatrix(badUnits, :) = [];
+    neuralData(j).meanWaveforms(badUnits, :) = [];
 end; clear j;
 spikeInfo.badUnits = badUnits;
 
+plotHeatMap(firingRateAll, badTrials, badUnits, plotoutputFolder)
 disp('p1_spikePreprocessing complete!')
 end
-

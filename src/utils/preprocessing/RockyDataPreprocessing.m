@@ -64,8 +64,11 @@ save([outputFolder saveFilenameBase 'KIN_' procTimeString],'kinematicData')
 disp('Saved task and kinematic data')
 
 %% Attach spikes to trialData
+plotoutputFolder = [outputFolder 'neuralPreprocessingPlot/'];
+mkdir(plotoutputFolder)
 [trialData,taskInfo,neuralData] = pp_spikeAlignmentToTrial(taskAlignedSpiketimes,synchInfo,trialData,taskInfo);
-save([outputFolder saveFilenameBase 'NER_' procTimeString],'neuralData')
+[neuralData, spikeInfo] = p1_spikePreprocessing(trialData, neuralData,1,0.35, plotoutputFolder);
+save([outputFolder saveFilenameBase 'NER_' procTimeString],'neuralData', "spikeInfo")
 disp('Saved neural data')
 
 %% Preprocess EMG and ECG data
