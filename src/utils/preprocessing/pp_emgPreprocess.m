@@ -1,4 +1,4 @@
-function [EMGData, EMGMetrics, ECGData] = emgPreprocess(trialData, analogData, outputFormat, plotoutputFolder)
+function [EMGData, EMGMetrics, ECGData] = pp_emgPreprocess(trialData, analogData, outputFormat, plotoutputFolder)
 % This function preprocesses the EMG data, including filtering,
 % rectification, and downsampling. Then, we get the segment applied to each
 % trial in trialData and store it accordingly.
@@ -32,14 +32,6 @@ function [EMGData, EMGMetrics, ECGData] = emgPreprocess(trialData, analogData, o
 %   - maxSNR = [nmuscles x 1] (peak avg activity)/(baseline)
 
 
-%% Input 
-date = "20220411";
-rootDir = "C:\Users\chaselab\Desktop\chaselab\difficulty\";
-outputFolder = rootDir + "data/preprocessed/" + date;
-synchonizedFolder = rootDir + "data/synchronized/";
-outputFormat = []; %"jpg", "svg", "fig"
-plotoutputFolder = rootDir + "data/preprocessed/" + date + "/emgConfirmPlot/";
-
 %% Filtering
 signalData = analogData;
 muscleLabel = ["ADel", "LBic", "PDel", "Trap", "Tric"];
@@ -57,7 +49,7 @@ ECG = signalData.data(:, 8);
 preprocessedEMGs = zeros(ceil(size(EMGs, 1)/10), 5); % Step 1 prepare (downsampled length, 5) double array
 new_fs = 1000;
 
-denoisedECG = ecgPreprocessing(ECG,fs);
+denoisedECG = pp_ecgPreprocessing(ECG,fs);
 for i=(1:length(muscleLabel))
     idx = find(muscleLabel==signalData.EMGMuscleNames(i)); % preventing muscle label misalignment
 
@@ -69,7 +61,7 @@ for i=(1:length(muscleLabel))
         baselineRemovedEMG = filtfilt(d, baselineRemovedEMG);
     end
     baselineRemovedEMG = downsample(baselineRemovedEMG,round(fs/new_fs));
-    [ ECGremovedEMG, ~] = ecgRemovalFilter(baselineRemovedEMG, denoisedECG, baselineRemovedEMG(1:100*new_fs), denoisedECG(1:100*new_fs),new_fs);
+    [ ECGremovedEMG, ~] = pp_ecgRemovalFilter(baselineRemovedEMG, denoisedECG, baselineRemovedEMG(1:100*new_fs), denoisedECG(1:100*new_fs),new_fs);
     bandpassedEMG = bandpass(ECGremovedEMG, [20, 450], new_fs);
     rectifiedEMG = abs(bandpassedEMG);
     preprocessedEMGs(:, idx) = rectifiedEMG; % Step 2 smoothed and put into the array
@@ -77,13 +69,13 @@ for i=(1:length(muscleLabel))
     % ploting
     if ~isempty(outputFormat)
         plotFilteringEffect(downsample(double(EMGs(:, i)),round(fs/new_fs)), baselineRemovedEMG, new_fs, ...
-            "Notch Filter "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-baseline-remove", outputFormat);
+            "1-Notch Filter "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-baseline-remove", outputFormat);
         plotFilteringEffect(baselineRemovedEMG, ECGremovedEMG, new_fs, ...
-            "ECG removal "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-ecg-remove", outputFormat);
+            "2-ECG removal "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-ecg-remove", outputFormat);
         plotFilteringEffect( ECGremovedEMG, bandpassedEMG, new_fs, ...
-            "Bandpass 20-450 "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-bandpass-20to450", outputFormat);
+            "3-Bandpass 20-450 "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-bandpass-20to450", outputFormat);
         plotFilteringEffect(bandpassedEMG, rectifiedEMG, new_fs, ...
-            "Rectify "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-rectify", outputFormat);
+            "4-Rectify "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-rectify", outputFormat);
     end
 end
 trialDataEMGRaw = struct.empty(0);
@@ -102,7 +94,7 @@ end
 
 %% Normalizing
 emgRest = preprocessedEMGs(1:120*new_fs, :);
-[EMGData, EMGMetrics] = emgNormalization(trialDataEMGRaw, emgRest, muscleLabel);
+[EMGData, EMGMetrics] = pp_emgNormalization(trialDataEMGRaw, emgRest, muscleLabel);
 
 %% ploting
 dataLength = 0;
@@ -124,12 +116,13 @@ for i=(1:length(trialDataEMGRaw))
     end
 end
 if ~isempty(outputFormat)
+    disp('start EMG plot')
     for c=(1:length(muscleLabel))
         figure
         plot((1:dataLength), Y(:, c))
         xlabel("Trials")
         ylabel("Mean EMG around GC")
-        title("Normalized EMG across trials")
+        title("5-Normalized EMG across trials")
         for e=(1:length(outputFormat))
             saveas(gcf, plotoutputFolder + muscleLabel(c) + "-normalized-emg-across-trials" + "." + outputFormat(e));
             close all

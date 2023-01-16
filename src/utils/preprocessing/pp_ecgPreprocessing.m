@@ -1,4 +1,4 @@
-function [ denoisedECG] = ecgPreprocessing(ecg,fs)
+function [ denoisedECG] = pp_ecgPreprocessing(ecg,fs)
 
 denoisedECG = double(ecg);
 for s=(1:8) % notch filtering

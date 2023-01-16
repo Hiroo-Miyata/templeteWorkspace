@@ -3,8 +3,8 @@ function plotFilteringEffect(before, after, fs, mainTitle, outputFolder, extensi
 subplot(1,2,1)
 plot((1:length(before))/fs, before); hold on;
 plot((1:length(after))/fs, after); hold off;
-xlabel('EMG voltage (a.u.)');
-ylabel('Time (s)');
+xlabel('Time (s)');
+ylabel('EMG voltage (a.u.)');
 legend(["Before", "After"])
 title("Time Series EMG Voltage");
 subplot(1,2,2)
@@ -16,6 +16,6 @@ sgtitle(mainTitle)
 set(gcf, "position", [10 10 1600 400])
 
 for e=(1:length(extensions))
-    saveas(gcf, outputFolder + mainTitle + "." + extensions(e));
+    saveas(gcf, outputFolder + "." + extensions(e));
     close all
 end

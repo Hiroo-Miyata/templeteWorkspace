@@ -36,7 +36,7 @@ nunits = length(unitLabels);
 assert(length(meanWaveforms)==nunits)
 assert(length(spikeTimes)==nunits)
 channel = int32(cellfun(@(x) str2double(x(5:7)), unitLabels));
-sortCodes = 'Uabcde'; % unsorted will be 0, a will be 1, etc.
+sortCodes = 'Uabcdef'; % unsorted will be 0, a will be 1, etc.
 sort = int32(cellfun(@(x) find(sortCodes==x(end))-1, unitLabels));
 waveformLength = median(cellfun(@(x) length(x), meanWaveforms)); % We assume at least half the units have waveforms
 meanWaveformMatrix = nan(nunits,waveformLength); 
@@ -74,6 +74,7 @@ for i = 1:ntrials
     neuralData(i).channel = channel;
     neuralData(i).sort = sort;
     neuralData(i).spikeMatrix = spikeMatrix;
+    neuralData(i).meanWaveforms = meanWaveformMatrix;
 %     trialData(i).neuralData = neuralData;
     clear spikeMatrix
     

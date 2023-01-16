@@ -1,4 +1,4 @@
-function [normalizedTrialData, EMGMetrics] = emgNormalization(preprocessedTrialData, emgRest, muscleLabel)
+function [normalizedTrialData, EMGMetrics] = pp_emgNormalization(preprocessedTrialData, emgRest, muscleLabel)
 %% this function is normalize the emg data 
 % normalize method
 % 1. get EMG signal of successes

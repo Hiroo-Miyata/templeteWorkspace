@@ -106,7 +106,9 @@ disp(['# of Jackpots removed: ' num2str(sum(rewardLabels(badTrials)==4))])
 
 fullTrialSpikeRateMat(:,badTrials) = [];    % remove it from these too
 spikeInfo.badTrials = badTrials;            % removes bad trials...nice and easy.
-
+spikeInfo.metadata = zeros(length(neuralData(1).channel),8);
+spikeInfo.metadata(:,1) = neuralData(1).channel;
+spikeInfo.metadata(:,2) = neuralData(1).sort;
 
 
 %% (2b) Remove outlier and unsorted units
@@ -115,6 +117,7 @@ disp('Removing bad units')
 % the FA model...
 noSpikeUnits = mean(fullTrialSpikeRateMat,2) < minSpikeRate;
 badUnits(noSpikeUnits) = true;
+spikeInfo.metadata(:,3) = badUnits;
 
 % This ^ captures units who fire too slowly for the FA model; however,
 % the other prime concern is "units" that are just artifacts -
@@ -123,6 +126,7 @@ badUnits(noSpikeUnits) = true;
 % stdev of the data; if a unit is < 1 Hz across all trials, remove it.
 lowVarUnits = std(fullTrialSpikeRateMat,[],2) < minSpikeRate;
 badUnits(lowVarUnits) = true;
+spikeInfo.metadata(:,4) = badUnits;
 
 % Occasionally a unit will be present / active for like half
 % of the session, then disappear. This type of artifact can really
@@ -134,10 +138,12 @@ earlyFR = mean(fullTrialSpikeRateMat(:,1:quarterOfSession),2);
 lateFR = mean(fullTrialSpikeRateMat(:,end-quarterOfSession+1:end),2);
 droppedUnits = (earlyFR-lateFR)./earlyFR > 0.75; % >75% drop in FR
 badUnits(droppedUnits) = true;
+spikeInfo.metadata(:,5) = badUnits;
 
 % We can also check for the opposite
 lateUnits = (lateFR-earlyFR)./lateFR > 0.75; % >75% increase in FR (but not for super low FR units)
 badUnits(lateUnits) = true;
+spikeInfo.metadata(:,6) = badUnits;
 
 % Another artifact is that randomly the channel just goes
 % crazy and gets ridiculously high values. If this happens, it seems to
@@ -148,6 +154,7 @@ for i=(1:nunits)
 end
 artifactHighUnits = any(smoothedTrialFR > 200,2); % if the avg of 50 trials is ever > 200Hz, there's a problem!
 badUnits(artifactHighUnits) = true;
+spikeInfo.metadata(:,7) = badUnits;
 
 %% I couldn't understand. Finally, identify sort ID, and if it's not between 1-6, throw it out.
 % unsortedUnits = ~ismember(data(1).TrialData.neuralData.sort,1:6);
@@ -183,18 +190,22 @@ while sum(neuronCrosstalkSums)~=0
     neuronCrosstalkSums = sum(corrMatNoDiag > corrThresh);
 end
 badUnits(crosstalkUnits) = true;
-
+spikeInfo.metadata(:,8) = badUnits;
 
 % Remove all bad units
 disp(['# units removed: ' num2str(sum(badUnits))])
+spikeInfo.badUnits = badUnits;
+spikeInfo.metadata = array2table(spikeInfo.metadata, ...
+    'VariableNames', {'Ch', 'Unit', 'minSpike', 'minSpikeVar', ...
+    '75%drop', '75%increase', 'crazyChannel', 'crossTalk'});
 for j = 1:ntrials
     neuralData(j).channel(badUnits) = [];
     neuralData(j).sort(badUnits) = [];
     neuralData(j).spikeMatrix(badUnits, :) = [];
     neuralData(j).meanWaveforms(badUnits, :) = [];
 end; clear j;
-spikeInfo.badUnits = badUnits;
 
 plotHeatMap(firingRateAll, badTrials, badUnits, plotoutputFolder)
 disp('p1_spikePreprocessing complete!')
 end
+
