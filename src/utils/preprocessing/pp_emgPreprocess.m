@@ -69,13 +69,13 @@ for i=(1:length(muscleLabel))
     % ploting
     if ~isempty(outputFormat)
         plotFilteringEffect(downsample(double(EMGs(:, i)),round(fs/new_fs)), baselineRemovedEMG, new_fs, ...
-            "1-Notch Filter "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-baseline-remove", outputFormat);
+            "Notch Filter "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-1-baseline-remove", outputFormat);
         plotFilteringEffect(baselineRemovedEMG, ECGremovedEMG, new_fs, ...
-            "2-ECG removal "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-ecg-remove", outputFormat);
+            "ECG removal "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-2-ecg-remove", outputFormat);
         plotFilteringEffect( ECGremovedEMG, bandpassedEMG, new_fs, ...
-            "3-Bandpass 20-450 "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-bandpass-20to450", outputFormat);
+            "Bandpass 20-450 "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-3-bandpass-20to450", outputFormat);
         plotFilteringEffect(bandpassedEMG, rectifiedEMG, new_fs, ...
-            "4-Rectify "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-rectify", outputFormat);
+            "Rectify "+muscleLabel(idx), plotoutputFolder+muscleLabel(idx)+"-4-rectify", outputFormat);
     end
 end
 trialDataEMGRaw = struct.empty(0);
@@ -117,14 +117,28 @@ for i=(1:length(trialDataEMGRaw))
 end
 if ~isempty(outputFormat)
     disp('start EMG plot')
+
+    figure
+    plot(1:9, EMGMetrics.maxSignalTuningCurve_mean, LineWidth=2.5)
+    legend(muscleLabel)
+    xticks(1:9)
+    xticklabels(["0", "45", "90", "135", "180", "225", "270", "315", "hold"])
+    ylabel("Average EMG around peak voltage (a.u.)")
+    title("Tuning curve of EMG")
+    for e=(1:length(outputFormat))
+        saveas(gcf, plotoutputFolder+"0-tuning-curve" + "." + outputFormat(e));
+        close all
+    end
+
+
     for c=(1:length(muscleLabel))
         figure
         plot((1:dataLength), Y(:, c))
         xlabel("Trials")
         ylabel("Mean EMG around GC")
-        title("5-Normalized EMG across trials")
+        title("Normalized EMG across trials")
         for e=(1:length(outputFormat))
-            saveas(gcf, plotoutputFolder + muscleLabel(c) + "-normalized-emg-across-trials" + "." + outputFormat(e));
+            saveas(gcf, plotoutputFolder + muscleLabel(c) + "-5-normalized-emg-across-trials" + "." + outputFormat(e));
             close all
         end
     end
