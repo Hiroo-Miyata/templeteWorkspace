@@ -9,6 +9,13 @@
 !/data/preprocessed/emgConfirmPlot/README.md
 /data/processed/*
 !/data/processed/README.md
+/data/processed/stitched/*
+!/data/processed/stitched/README.md
+/data/processed/non-stitched/*
+!/data/processed/non-stitched/README.md
+/data/processed/stitched-whole/*
+!/data/processed/stitched-whole/README.md
+
 
 /src/*.asv
 /src/utils/preprocessing/*.asv
