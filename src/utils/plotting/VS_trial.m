@@ -10,13 +10,13 @@ function VS_trial(trialNums, Y, rewardLabels, difficultyLabels, options)
         options.IsMultipleDays (1, 1) logical = false
         options.DayLabels (:, 1) double
         options.FigWidth (1, 1) double = 550
+        options.DiffLegendPos = "southwest"
+        options.RewLegendPos = "south"
     end
 
-    nrewards = 3; rewards = [1 2 3];
-    ndifficulties = 2; difficulties = [0 1];
-    rewColors = [1 0 0; 1 0.6470 0; 0 0 1]; diffColors = [0 0.447 0.741; 0.466 0.674 0.188];
-    direColors = {[1 .5 .5],[.75 .75 .5],[.5 1 .5],[.25 .75 .5],[0 .5 .5],[0.25 0.25 .5],[0.5 0 .5],[0.75 0.25 .5]};
-    DiffStyle = ["-", ":"];
+    [rewardNames, rewardLegends, rewColors, diffColors, direColors, DiffStyle, DelayTimes, nDelayTimes] = getExperimentConstants();
+    rewards = unique(rewardLabels); nrewards = length(rewards);
+    difficulties = unique(difficultyLabels); ndifficulties = length(difficulties);
 
     if options.IsMultipleDays
         dayLabels = options.DayLabels;
@@ -30,8 +30,10 @@ function VS_trial(trialNums, Y, rewardLabels, difficultyLabels, options)
         for i = 1:nrewards
             for j = 1:ndifficulties
                 curInds = rewardLabels == rewards(i) & difficultyLabels == difficulties(j) & dayLabels == dates(d) & ~isnan(Y);
-                smoothedY = movmean(Y(curInds), 50);
-                h(j) = plot(trialNums(curInds), smoothedY, 'Color', rewColors(i, :), 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+                smoothedY = movmean(Y(curInds), 5);
+                plot(trialNums(curInds), smoothedY, 'Color', rewColors(rewards(i), :), 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+                lh(j) = plot(0, 0, 'Color', 'k', 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+                lr(i) = plot(0, 0, 'Color', rewColors(rewards(i), :), 'LineWidth', 2.5);
             end
         end
         % add xline at the end of each day
@@ -39,8 +41,11 @@ function VS_trial(trialNums, Y, rewardLabels, difficultyLabels, options)
     end
 
     set(gca, 'fontsize', 20, 'fontname', 'arial', 'tickdir', 'out', 'fontweight', 'bold');
-    xlabel("Trial Number"); ylabel(options.Label); legend(h, ["Tiny", "Huge"], Location="best");
+    xlabel("Trial Number"); ylabel(options.Label);
     set(gcf,'position',[0,0,options.FigWidth,550]);
+    legend(lh, ["Tiny", "Huge"], Location=options.DiffLegendPos); ah1=axes('position',get(gca,'position'),'visible','off');
+    leg2=legend(ah1,lr,rewardLegends, Location=options.RewLegendPos);
+    set(gca, 'fontsize', 20, 'fontname', 'arial', 'tickdir', 'out', 'fontweight', 'bold');
     saveas(gcf, options.OutputFolder+"-vs-trial.jpg");
     close all;
 end

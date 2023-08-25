@@ -1,10 +1,20 @@
-function VS_direction(data, rewardLabels, difficultyLabels, directionLabels, label, outputFolder)
-    nrewards = 3; rewards = [1 2 3];
-    ndifficulties = 2; difficulties = [0 1];
-    ndirections = 8; directions = 1:8;
-    rewColors = [1 0 0; 1 0.6470 0; 0 0 1]; diffColors = [0 0.447 0.741; 0.466 0.674 0.188];
-    direColors = {[1 .5 .5],[.75 .75 .5],[.5 1 .5],[.25 .75 .5],[0 .5 .5],[0.25 0.25 .5],[0.5 0 .5],[0.75 0.25 .5]};
-    DiffStyle = ["-", ":"];
+function VS_direction(data, rewardLabels, difficultyLabels, directionLabels, options)
+    
+    arguments
+        data
+        rewardLabels
+        difficultyLabels
+        directionLabels
+        options.Label
+        options.OutputFolder
+        options.DiffLegendPos = "southwest"
+        options.RewLegendPos = "south"
+    end
+
+    [rewardNames, rewardLegends, rewColors, diffColors, direColors, DiffStyle, DelayTimes, nDelayTimes] = getExperimentConstants();
+    rewards = unique(rewardLabels); nrewards = length(rewards);
+    difficulties = unique(difficultyLabels); ndifficulties = length(difficulties);
+    directions = unique(directionLabels); ndirections = length(directions);
 
     figure; hold on;
     for j=1:ndifficulties
@@ -15,13 +25,18 @@ function VS_direction(data, rewardLabels, difficultyLabels, directionLabels, lab
                 Y(k) = mean(data(curInds));
                 Yerr(k) = std(data(curInds)) / sqrt(sum(curInds));
             end
-            h(j) = errorbar(1:ndirections, Y,Yerr, 'Color', rewColors(i, :), 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+            errorbar(1:ndirections, Y,Yerr, 'Color', rewColors(rewards(i), :), 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+            lh(j) = plot(0, 0, 'Color', 'k', 'LineWidth', 2.5,  'LineStyle', DiffStyle(j));
+            lr(i) = plot(0, 0, 'Color', rewColors(rewards(i), :), 'LineWidth', 2.5);
         end
     end
     set(gca, 'fontsize', 20, 'fontname', 'arial', 'tickdir', 'out', 'fontweight', 'bold');
     xlim([0.7 ndirections+.3]); xticks(1:ndirections); xticklabels([0 45 90 135 180 225 270 315]);
-    xlabel("Direction"); ylabel(label); legend(h, ["Tiny", "Huge"], Location="best");
-    set(gcf,'position',[0,0,550,550]);
-    saveas(gcf, outputFolder+"-vs-Direction.jpg");
+    xlabel("Direction"); ylabel(options.Label); set(gcf,'position',[0,0,550,550]);
+    ah1=axes('position',get(gca,'position'),'visible','off');
+    legend(ah1,lr,rewardLegends, Location=options.RewLegendPos);
+    legend(lh, ["Tiny", "Huge"], Location=options.DiffLegendPos); 
+    set(gca, 'fontsize', 20, 'fontname', 'arial', 'tickdir', 'out', 'fontweight', 'bold');
+    saveas(gcf, options.OutputFolder+"-vs-Direction.jpg");
     close all;
 end
