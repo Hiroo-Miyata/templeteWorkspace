@@ -1,5 +1,6 @@
 /data/raw/*
 !/data/raw/README.md
+/data/synchinterim/*
 /data/synchronized/*
 !/data/synchronized/README.md
 /data/preprocessed/*
@@ -23,5 +24,6 @@
 /src/*.asv
 /src/utils/preprocessing/*.asv
 /src/utils/synchronizing/*.asv
+/src/utils/stitching/*
 
 .DS_Store

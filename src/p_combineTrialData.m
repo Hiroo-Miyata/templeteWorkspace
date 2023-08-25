@@ -1,7 +1,7 @@
 clear all;
 %% Input 
 % dates = ["20220407"];
-dates = ["20220407", "20220408", "20220412","20220413","20220414","20220415","20220419","20220420"];
+dates = ["20220216", "20220217", "20220218", "20220221", "20220222", "20220223", "20220225", "20220228", "20220301"];
 for d = 1:length(dates)
 date = dates(d);
 rootDir = "../";
@@ -17,12 +17,12 @@ outputFile = rootDir + "data/processed/non-stitched/" + date + "_"+target+"_"+nu
 preprocessedFolder = rootDir + "data/preprocessed/" + date;
 synchfile = dir(preprocessedFolder+'/*_TSK_*.mat');
 neurofile = dir(preprocessedFolder+'/*_NER_*.mat');
-emgfile = dir(preprocessedFolder+'/*_EMG_*.mat');
+% emgfile = dir(preprocessedFolder+'/*_EMG_*.mat');
 % pupilfile = dir(preprocessedFolder+'/*_EYE_*.mat');
 kinematicsfile = dir(preprocessedFolder+'/*_updatedKIN_*.mat');
 load(synchfile.folder +"/"+ synchfile.name);
 load(neurofile.folder +"/"+ neurofile.name);
-load(emgfile.folder +"/"+ emgfile.name);
+% load(emgfile.folder +"/"+ emgfile.name);
 % load(pupilfile.folder +"/"+ pupilfile.name);
 load(kinematicsfile.folder +"/"+ kinematicsfile.name);
 
@@ -61,8 +61,8 @@ for i = 1:length(trialData)
 %                 end
                 firingRate = 1000 * spikeTrain;
                 trialData(i).firingRates = firingRate(:, stateTime2-beforeT:stateTime2+afterT);
-                trialData(i).emg = EMGData(i).signal(stateTime2-beforeT:stateTime2+afterT, :);
-                trialData(i).goodEMGData = EMGData(i).goodEMGData;
+%                 trialData(i).emg = EMGData(i).signal(stateTime2-beforeT:stateTime2+afterT, :);
+%                 trialData(i).goodEMGData = EMGData(i).goodEMGData;
                 trialData(i).handKinematics = kinematicData(i);
                 % GCTime = stateTransition(2, find(stateTransition(1, :)==4));
                 % GCTime = find(trialData(i).time==GCTime);

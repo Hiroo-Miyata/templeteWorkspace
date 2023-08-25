@@ -1,5 +1,5 @@
 % main function 
-dates = ["0407", "0408", "0412", "0413", "0414", "0415", "0419", "0420"];
+dates = ["0216", "0217", "0218", "0221", "0222", "0223", "0225", "0228", "0301"];
 trialDataAll = struct.empty;
 for d = 1:length(dates)
     date = dates(d);

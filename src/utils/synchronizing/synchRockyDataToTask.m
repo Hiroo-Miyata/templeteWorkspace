@@ -86,22 +86,34 @@
 %%% I recommend running this section by section for each day to make sure
 %%% eveyrthing goes smoothly.
 %%%
-%%% Adam Smoulder, last edited 11/2/22
+%%% Adam Smoulder, last edited 10/18/22
 
+%% Input
+inputDates = ["20220216", "20220217", "20220218", "20220221", "20220222", "20220223", "20220225", "20220228", "20220301"]; % "20220216", "20220217", "20220218", "20220221", "20220222", "20220223", "20220225", "20220228", "20220301", 
+ 
+for day = 1:length(inputDates)
+date = inputDates(day);
+dataFolder = "..\..\..\data\";
   
 % ATTEMPT FOR OLD CHOKING; no issues
-sortedDataFilename_ANT = 'F:\~~~RockyData\BORTRig\Blackrock_anterior\20220216to20220303_chokingReachingExperimentsAndChoice\Rocky_Anterior_20220302_delayedCOut_sorted.nex';
-waveformMeanFilename_ANT = 'F:\~~~RockyData\BORTRig\Blackrock_anterior\20220216to20220303_chokingReachingExperimentsAndChoice\Rocky_Anterior_20220302_delayedCOut_sorted.txt';
-sortedDataFilename_POST = 'F:\~~~RockyData\BORTRig\Blackrock_posterior\20220216to20220303_chokingReachingExperimentsAndChoice\Rocky_Posterior_20220302_delayedCOut_sorted.nex';
-waveformMeanFilename_POST = 'F:\~~~RockyData\BORTRig\Blackrock_posterior\20220216to20220303_chokingReachingExperimentsAndChoice\Rocky_Posterior_20220302_delayedCOut_sorted.txt';
-analogDataFilename = 'F:\~~~RockyData\BORTRig\Blackrock_anterior\20220216to20220303_chokingReachingExperimentsAndChoice\Rocky_Anterior_20220302_delayedCOut.ns4';
+tmpFileInfo = dir(dataFolder+'raw\*_Anterior_*'+date+'*_sorted.nex');
+sortedDataFilename_ANT = sprintf('%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name]);
+tmpFileInfo = dir(dataFolder+'raw\*_Anterior_*'+date+'*_sorted.txt');
+waveformMeanFilename_ANT = sprintf('%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name]);
+tmpFileInfo = dir(dataFolder+'raw\*_Posterior_*'+date+'*_sorted.nex');
+sortedDataFilename_POST = sprintf('%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name]);
+tmpFileInfo = dir(dataFolder+'raw\*_Posterior_*'+date+'*_sorted.txt');
+waveformMeanFilename_POST = sprintf('%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name]);
+tmpFileInfo = dir(dataFolder+'raw/*'+date+'*.ns4');
+analogDataFilename = sprintf('%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name]);
+tmpFileInfo = dir(dataFolder+'/raw/TaskData/*'+date+'*');
+taskDataFolder = sprintf('%s%s%s%s', [tmpFileInfo.folder, '\', tmpFileInfo.name, '\']);
 taskDataFolders = {... % don't forget the \ at the end
-    'F:\~~~RockyData\BORTRig\TaskData\20220216to20220303_chokingReachingExperimentsAndChoice\centerOutData_20220302_153642\'
+    taskDataFolder
     };
-outputFolder = '..\..\..\data\synchronized\'; % where to save the file; by default, it will use the datestring from the task.
+outputFolder = '..\..\..\data\synchInterim\'; % where to save the file; by default, it will use the datestring from the task.
 EMGMuscleNames = {'Tric','PDel','Trap','ADel','LBic','',''};
-
-
+  
 
 
 
@@ -129,11 +141,11 @@ analogDataLabelMapping = {... % Analog channel names
 
 % Parameters from recording and file naming conventions; shouldn't change
 BRFileFS = 30000;                   % BR machine samples at 30KHz
-fieldtripPath = 'D:\fieldtrip-20160712\fieldtrip-20160712\fileio\';  % we need fileio from fieldtrip to load the .nex files
-npmkPath = 'F:\~~~RockyData\BORTRig\~NPMK'; % we need this for loading the analog data file
+fieldtripPath = '.\~fieldtrip_fileio\';  % we need fileio from fieldtrip to load the .nex files
+npmkPath = '.\~NPMK\'; % we need this for loading the analog data file
 synchChanName = 'ainp16';      % which analog signal is the synch pulse?
 
-assert(~strcmp(sortedDataFilename_ANT(end-3:end),'.plx'),'Do not use PLX! Takes too much memory (loads all waveforms). Convert to NEX')
+% assert(~strcmp(sortedDataFilename_ANT(end-3:end),'.plx'),'Do not use PLX! Takes too much memory (loads all waveforms). Convert to NEX')
 
 
 %% Add paths and load analog data
@@ -473,6 +485,10 @@ else
     spikeTimes_sorted = ANT_spikeTimes_sorted(~ANT_unsortedUnits);
 end
 
+%% for 20220407, add 0.236 s to all spike times
+if strcmp(date,'20220407')
+    spikeTimes_sorted = cellfun(@(x) x-0.236, spikeTimes_sorted,'uniformoutput',false);
+end
 
 %% Align spikes with analog data. Every time the Blackrock system chunks 
 %  data, the clock resets to 0, so we'll have to adjust the spiketimes
@@ -601,8 +617,9 @@ disp('Done Saving!')
 
 
 
-
-
+end
+clear all;
+close all;
 
 
 

@@ -22,7 +22,10 @@
 clear all; close all;
 dbstop if error
 
-date = "20220407";
+dates = ["20220216", "20220217", "20220218", "20220221", "20220222", "20220223", "20220225", "20220228", "20220301"];
+
+for day = 1:length(dates)
+date = dates(day);
 dataFolder = "..\..\..\data\";
 tmpFileInfo = dir(dataFolder+'synchinterim/*'+date+'*.mat');
 load(tmpFileInfo.folder +"/"+ tmpFileInfo.name);
@@ -35,11 +38,12 @@ taskDataFolderList = tmpFileInfo.folder +"/"+ tmpFileInfo.name+'\';
 functionFolder = ['..\']; % This is where the functions and classes needed are, at least beneath it
 outputFolder = ['..\..\..\data\preprocessed\'+date + '\'] ; % where to save files
 
+
 clear dataFolder tmpFileInfo
 
 % Things that shouldn't change over days
 trialDataTag = 'Trial0'; % what each trial data file starts with
-rewardNames = {'Small','Medium','Large'}; % Searches target names for these
+rewardNames = {'Small','Medium','Large','Jackpot'}; % Searches target names for these
 
 % Go to working folder
 addpath(functionFolder)
@@ -63,17 +67,17 @@ saveFilenameBase = ['Rocky' ...
     '_Trials' num2str(trialData(1).trial) ...
     '_' num2str(trialData(end).trial) '_preprocessed_' ...
     ];
-% save(outputFolder+saveFilenameBase+'TSK_'+procTimeString,'trialData', 'taskInfo')
-% save(outputFolder+saveFilenameBase+'KIN_'+procTimeString,'kinematicData')
-% disp('Saved task and kinematic data')
+save(outputFolder+saveFilenameBase+'TSK_'+procTimeString,'trialData', 'taskInfo')
+save(outputFolder+saveFilenameBase+'KIN_'+procTimeString,'kinematicData')
+disp('Saved task and kinematic data')
 
 %% Attach spikes to trialData
-% plotoutputFolder = outputFolder+'neuralPreprocessingPlot/';
-% mkdir(plotoutputFolder)
-% [trialData,taskInfo,neuralData] = pp_spikeAlignmentToTrial(taskAlignedSpiketimes,synchInfo,trialData,taskInfo);
-% [neuralData, spikeInfo] = p1_spikePreprocessing(trialData, neuralData,1,0.35, plotoutputFolder);
-% save(outputFolder+saveFilenameBase+'NER_'+procTimeString,'neuralData', "spikeInfo")
-% disp('Saved neural data')
+plotoutputFolder = outputFolder+'neuralPreprocessingPlot/';
+mkdir(plotoutputFolder)
+[trialData,taskInfo,neuralData] = pp_spikeAlignmentToTrial(taskAlignedSpiketimes,synchInfo,trialData,taskInfo);
+[neuralData, spikeInfo] = p1_spikePreprocessing(trialData, neuralData,1,0.35, plotoutputFolder);
+save(outputFolder+saveFilenameBase+'NER_'+procTimeString,'neuralData', "spikeInfo")
+disp('Saved neural data')
 
 %% Preprocess EMG and ECG data
 % TO-DO: put in EMG processing here
@@ -87,11 +91,11 @@ saveFilenameBase = ['Rocky' ...
 
 %% Preprocess eye data
 % TO-DO: put in Eye data processing here
-outputFormat = ["jpg"]; %"jpg", "svg", "fig"
-plotoutputFolder = outputFolder+'pupilPlot/';
-mkdir(plotoutputFolder)
-pupilData = pp_pupilPreprocess(trialData, analogData, outputFormat, plotoutputFolder);
-save(outputFolder+saveFilenameBase+'EYE_'+procTimeString, 'pupilData')
+% outputFormat = ["jpg"]; %"jpg", "svg", "fig"
+% plotoutputFolder = outputFolder+'pupilPlot/';
+% mkdir(plotoutputFolder)
+% pupilData = pp_pupilPreprocess(trialData, analogData, outputFormat, plotoutputFolder);
+% save(outputFolder+saveFilenameBase+'EYE_'+procTimeString, 'pupilData')
 
 %% Assess various data streams for behavioral metrics (i.e., peak speed,
 % saccade reaction time, average heart rate, etc.)
@@ -100,6 +104,7 @@ save(outputFolder+saveFilenameBase+'EYE_'+procTimeString, 'pupilData')
 
 disp('Completed preprocessing')
 
+end
 
 
 
